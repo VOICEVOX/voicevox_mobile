@@ -10,7 +10,6 @@ import com.getcapacitor.annotation.CapacitorPlugin
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.security.MessageDigest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -19,7 +18,7 @@ class CorePlugin : Plugin() {
     var core: VoicevoxCore? = null
     override fun load() {
         val modelPath: String = try {
-            extractModel()
+            extractIfNotFound("model.zip")
         } catch (e: IOException) {
             throw RuntimeException(e)
         }
@@ -48,40 +47,41 @@ class CorePlugin : Plugin() {
     }
 
     @Throws(IOException::class)
-    private fun extractModel(): String {
+    private fun extractIfNotFound(archive: String): String {
         val context = context
         val filesDir = context.filesDir.absolutePath
-        Log.i("extractModel", "filesDir: $filesDir")
+        val dirName = File(archive).name
 
-        val modelRoot = File(filesDir, "model")
+        val modelRoot = File(filesDir, dirName)
         if (modelRoot.exists()) {
-            Log.i("extractModel", "modelRoot exists, skip extract")
+            Log.i("extractIfNotFound", "Already exists (${modelRoot.absolutePath})")
             return modelRoot.absolutePath
         }
-        Log.i("extractModel", "modelRoot not exists, extract")
+        Log.i("extractIfNotFound", "Extracting to ${modelRoot.absolutePath}")
         modelRoot.mkdir()
         val act: Activity = activity
-        val model = act.assets.open("model.zip")
+        val model = act.assets.open(archive)
         val input = ZipInputStream(model)
         var entry: ZipEntry?
+
         while (input.nextEntry.also { entry = it } != null) {
             if (entry!!.isDirectory) {
                 continue
             }
             val fileName = entry!!.name
             val file = File(modelRoot, fileName)
-            file.parentFile.mkdirs()
+            file.parentFile?.mkdirs()
             val out = FileOutputStream(file)
             val buffer = ByteArray(1024)
             var len: Int
-            Log.i("extractModel", "extracting: $fileName")
+            Log.i("extractIfNotFound", "Extracting $fileName")
             while (input.read(buffer).also { len = it } > 0) {
                 out.write(buffer, 0, len)
             }
         }
         input.close()
         model.close()
-        Log.i("extractModel", "model extracted")
+        Log.i("extractIfNotFound", "Done")
         return modelRoot.absolutePath
     }
 }
