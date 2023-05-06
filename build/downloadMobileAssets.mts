@@ -108,7 +108,8 @@ const downloadAndCompressOpenJTalkDict = async () => {
     "-xzf",
     dictPath.replace(/\\/g, "/"),
     "-C",
-    __dirname + "/vendored"
+    __dirname + "/vendored",
+    "--force-local"
   );
 
   await runCommand(
