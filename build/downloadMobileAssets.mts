@@ -70,6 +70,18 @@ const downloadAndCompressModel = async () => {
 };
 
 const downloadAndCompressOpenJTalkDict = async () => {
+  const dictZipPath = path.resolve(
+    __dirname,
+    "../android/app/src/main/assets/openjtalk_dict.zip"
+  );
+  if (fs.existsSync(dictZipPath)) {
+    console.log("dict archive already exists. skipping download.");
+    console.log(
+      "If you want to create the dict archive again, delete the openjtalk_dict.zip and run this script again."
+    );
+    return;
+  }
+
   // node-fetchはESModuleなので、import()で読み込む
   const { default: fetch } = await import("node-fetch");
 
@@ -94,10 +106,7 @@ const downloadAndCompressOpenJTalkDict = async () => {
     sevenZip,
     "a",
     "-tzip",
-    path.resolve(
-      __dirname,
-      "../android/app/src/main/assets/openjtalk_dict.zip"
-    ),
+    dictZipPath,
     __dirname + "/vendored/open_jtalk_dic_utf_8-1.11/*"
   );
 
