@@ -4,6 +4,7 @@
  */
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { runCommand, __dirname } from "./utils.mjs";
 
 let sevenZipCommand: string;
@@ -66,6 +67,8 @@ const downloadAndCompressModel = async () => {
     __dirname + "/vendored/voicevox_core/model/*",
     __dirname + "/vendored/voicevox_core/LICENSE"
   );
+  await createFileHash(modelZipPath);
+
   // TODO: iOSにコピーする処理を追加する
 };
 
@@ -109,8 +112,24 @@ const downloadAndCompressOpenJTalkDict = async () => {
     dictZipPath,
     __dirname + "/vendored/open_jtalk_dic_utf_8-1.11/*"
   );
+  await createFileHash(dictZipPath);
 
   // FIXME: iOSにコピーする処理を追加する
+};
+
+const createFileHash = async (filePath: string) => {
+  const hash = crypto.createHash("sha256");
+  await new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .on("data", (data) => hash.update(data))
+      .on("end", resolve)
+      .on("error", reject);
+  });
+  await fs.promises.writeFile(
+    filePath + ".sha256",
+    hash.digest("hex"),
+    "utf-8"
+  );
 };
 
 downloadAndCompressModel();

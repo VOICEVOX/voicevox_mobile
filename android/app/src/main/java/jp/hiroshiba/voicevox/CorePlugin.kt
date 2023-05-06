@@ -64,21 +64,32 @@ class CorePlugin : Plugin() {
     }
 
     @Throws(IOException::class)
-    private fun extractIfNotFound(archive: String): String {
+    private fun extractIfNotFound(archiveName: String): String {
         val context = context
         val filesDir = context.filesDir.absolutePath
-        val dirName = File(archive).nameWithoutExtension
+        val dirName = File(archiveName).nameWithoutExtension
 
-        val modelRoot = File(filesDir, dirName)
-        if (modelRoot.exists()) {
-            Log.i("extractIfNotFound", "Already exists (${modelRoot.absolutePath})")
-            return modelRoot.absolutePath
-        }
-        Log.i("extractIfNotFound", "Extracting to ${modelRoot.absolutePath}")
-        modelRoot.mkdir()
         val act: Activity = activity
-        val model = act.assets.open(archive)
-        val input = ZipInputStream(model)
+        val archive = act.assets.open(archiveName)
+        val shaSumFile = act.assets.open("$archiveName.sha256")
+        val shaSumReader = shaSumFile.bufferedReader()
+        val shaSum = shaSumReader.readLine()
+        shaSumReader.close()
+        shaSumFile.close()
+
+        val destRoot = File(filesDir, dirName)
+        val destHash = File(filesDir, ".sha256")
+        if (destHash.exists() && destHash.readText() == shaSum) {
+            Log.i("extractIfNotFound", "Already exists (${destRoot.absolutePath})")
+            return destRoot.absolutePath
+        } else if (destHash.exists()) {
+            Log.i("extractIfNotFound", "Outdated (Hashes don't match)")
+        } else {
+            Log.i("extractIfNotFound", "Not exists")
+        }
+        Log.i("extractIfNotFound", "Extracting to ${destRoot.absolutePath}")
+        destRoot.mkdir()
+        val input = ZipInputStream(archive)
         var entry: ZipEntry?
 
         while (input.nextEntry.also { entry = it } != null) {
@@ -86,7 +97,7 @@ class CorePlugin : Plugin() {
                 continue
             }
             val fileName = entry!!.name
-            val file = File(modelRoot, fileName)
+            val file = File(destRoot, fileName)
             file.parentFile?.mkdirs()
             val out = FileOutputStream(file)
             val buffer = ByteArray(1024)
@@ -97,8 +108,9 @@ class CorePlugin : Plugin() {
             }
         }
         input.close()
-        model.close()
+        archive.close()
+        destHash.writeText(shaSum)
         Log.i("extractIfNotFound", "Done")
-        return modelRoot.absolutePath
+        return destRoot.absolutePath
     }
 }
