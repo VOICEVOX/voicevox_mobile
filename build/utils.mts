@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore import.metaでエラーが出るが、ts-node用の設定が入るので動く。（ts-expect-errorだとtsserverがNot usedのfalse positiveを出す）
-export const __filename = fileURLToPath(import.meta.url);
+export const __filename = fileURLToPath(import.meta.url).replace(/\\/g, "/");
 export const __dirname = path.dirname(__filename);
 
 export function runCommand(filePath: string, ...args: string[]) {

@@ -103,7 +103,13 @@ const downloadAndCompressOpenJTalkDict = async () => {
   const buffer = await response.arrayBuffer();
   await fs.promises.writeFile(dictPath, Buffer.from(buffer));
 
-  await runCommand("tar", "-xzf", dictPath, "-C", __dirname + "/vendored");
+  await runCommand(
+    "tar",
+    "-xzf",
+    dictPath.replace(/\\/g, "/"),
+    "-C",
+    __dirname + "/vendored"
+  );
 
   await runCommand(
     sevenZip,
