@@ -4,6 +4,8 @@ export type VoicevoxCorePlugin = {
   getVersion: () => Promise<{ value: string }>;
   getSupportedDevicesJson: () => Promise<{ value: string }>;
   getMetasJson: () => Promise<{ value: string }>;
+
+  initialize: () => Promise<void>;
 };
 
 const loadPlugin = () => {

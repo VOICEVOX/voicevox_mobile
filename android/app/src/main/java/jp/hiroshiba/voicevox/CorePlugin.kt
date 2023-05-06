@@ -46,11 +46,28 @@ class CorePlugin : Plugin() {
         call.resolve(ret)
     }
 
+    @PluginMethod
+    fun initialize(call: PluginCall) {
+        val dictPath: String = try {
+            extractIfNotFound("openjtalk_dict.zip")
+        } catch (e: IOException) {
+            throw RuntimeException(e)
+        }
+        val result = core!!.voicevoxInitialize(
+                dictPath,
+        )
+        if (result == 0) {
+            call.resolve()
+        } else {
+            call.reject(core!!.voicevoxErrorResultToMessage(result))
+        }
+    }
+
     @Throws(IOException::class)
     private fun extractIfNotFound(archive: String): String {
         val context = context
         val filesDir = context.filesDir.absolutePath
-        val dirName = File(archive).name
+        val dirName = File(archive).nameWithoutExtension
 
         val modelRoot = File(filesDir, dirName)
         if (modelRoot.exists()) {

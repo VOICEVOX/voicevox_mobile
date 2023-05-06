@@ -10,6 +10,8 @@ class VoicevoxCore {
 
     external fun voicevoxErrorResultToMessage(statusCode: Int): String
 
+    external fun voicevoxInitialize(openJtalkDictPath: String): Int
+
     constructor(modelPath: String) {
         try {
             Os.setenv("VV_MODELS_ROOT_DIR", modelPath, true)

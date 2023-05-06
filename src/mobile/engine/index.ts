@@ -15,12 +15,9 @@ const loadApi = () => {
   const corePlugin = window.plugins?.voicevoxCore;
   if (!corePlugin) throw new Error("assert: corePlugin != null");
   let isCoreInitialized = false;
-  isCoreInitialized = true;
-
-  // TODO: エンジンが初期化されるまで待つ。
-  // corePlugin.initialize().then(() => {
-  //   isCoreInitialized = true;
-  // });
+  corePlugin.initialize().then(() => {
+    isCoreInitialized = true;
+  });
 
   // コアベースのOpenAPI Connectorライクなオブジェクト。
   // - コアベースの実装がある場合は呼び出し、
