@@ -4,9 +4,11 @@ import android.system.ErrnoException
 import android.system.Os
 
 class VoicevoxCore {
-    external fun voicevoxGetVersion(): String?
-    external fun voicevoxGetSupportedDevicesJson(): String?
-    external fun voicevoxGetMetasJson(): String?
+    external fun voicevoxGetVersion(): String
+    external fun voicevoxGetSupportedDevicesJson(): String
+    external fun voicevoxGetMetasJson(): String
+
+    external fun voicevoxErrorResultToMessage(statusCode: Int): String
 
     constructor(modelPath: String) {
         try {

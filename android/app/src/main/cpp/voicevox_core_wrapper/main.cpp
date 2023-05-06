@@ -74,3 +74,19 @@ Java_jp_hiroshiba_voicevox_VoicevoxCore_voicevoxGetMetasJson(
     return env->
             NewStringUTF(voicevoxCore->voicevox_get_metas_json());
 }
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_jp_hiroshiba_voicevox_VoicevoxCore_voicevoxErrorResultToMessage(
+        JNIEnv *env,
+        jobject thiz,
+        jint status_code
+) {
+    if (!assertCoreLoaded(env)) {
+        return nullptr;
+    }
+
+    auto message = voicevoxCore->voicevox_error_result_to_message(static_cast<VoicevoxResultCode>(status_code));
+
+    return env->NewStringUTF(message);
+}
