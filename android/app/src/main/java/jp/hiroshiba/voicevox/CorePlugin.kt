@@ -49,6 +49,8 @@ class CorePlugin : Plugin() {
     @PluginMethod
     fun initialize(call: PluginCall) {
         val dictPath: String = try {
+            // assets内のフォルダにパスでアクセスする方法が見付からなかったので
+            // 1度filesに展開している。もっといい解決法があるかも。
             extractIfNotFound("openjtalk_dict.zip")
         } catch (e: IOException) {
             throw RuntimeException(e)
