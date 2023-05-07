@@ -79,7 +79,7 @@ class CorePlugin : Plugin() {
         val destRoot = File(filesDir, dirName)
         val destHash = File(destRoot, ".sha256")
         if (destHash.exists() && destHash.readText() == shaSum) {
-            Log.i("extractIfNotFound", "Already exists (${destRoot.absolutePath})")
+            Log.i("extractIfNotFound", "Up to date (${destRoot.absolutePath})")
             return destRoot.absolutePath
         } else if (destHash.exists()) {
             Log.i("extractIfNotFound", "Outdated (Hashes don't match)")
