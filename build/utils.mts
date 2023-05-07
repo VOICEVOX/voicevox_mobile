@@ -9,7 +9,7 @@ export const __dirname = path.dirname(__filename);
 
 export function runCommand(filePath: string, ...args: string[]) {
   const process = spawn(filePath, args, {
-    stdio: "inherit",
+    stdio: ["ignore", "inherit", "inherit"]
   });
   return new Promise<void>((resolve, reject) => {
     process.on("exit", (code) => {

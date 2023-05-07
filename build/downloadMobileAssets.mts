@@ -104,12 +104,18 @@ const downloadAndCompressOpenJTalkDict = async () => {
   await fs.promises.writeFile(dictPath, Buffer.from(buffer));
 
   await runCommand(
-    "tar",
-    "-xzf",
-    dictPath.replace(/\\/g, "/"),
-    "-C",
-    __dirname + "/vendored",
-    "--force-local"
+    sevenZip,
+    "x",
+    dictPath,
+    "-o" + __dirname + "/vendored",
+    "-y"
+  );
+  await runCommand(
+    sevenZip,
+    "x",
+    __dirname + "/vendored/open_jtalk_dic_utf_8-1.11.tar",
+    "-o" + __dirname + "/vendored",
+    "-y"
   );
 
   await runCommand(
@@ -117,7 +123,8 @@ const downloadAndCompressOpenJTalkDict = async () => {
     "a",
     "-tzip",
     dictZipPath,
-    __dirname + "/vendored/open_jtalk_dic_utf_8-1.11/*"
+    __dirname + "/vendored/open_jtalk_dic_utf_8-1.11/*",
+    "-y"
   );
   await createFileHash(dictZipPath);
 
