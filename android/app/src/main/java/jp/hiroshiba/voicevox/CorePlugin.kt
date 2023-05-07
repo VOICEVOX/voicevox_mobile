@@ -65,7 +65,6 @@ class CorePlugin : Plugin() {
 
     @Throws(IOException::class)
     private fun extractIfNotFound(archiveName: String): String {
-        val context = context
         val filesDir = context.filesDir.absolutePath
         val dirName = File(archiveName).nameWithoutExtension
 
@@ -78,7 +77,7 @@ class CorePlugin : Plugin() {
         shaSumFile.close()
 
         val destRoot = File(filesDir, dirName)
-        val destHash = File(filesDir, ".sha256")
+        val destHash = File(destRoot, ".sha256")
         if (destHash.exists() && destHash.readText() == shaSum) {
             Log.i("extractIfNotFound", "Already exists (${destRoot.absolutePath})")
             return destRoot.absolutePath
