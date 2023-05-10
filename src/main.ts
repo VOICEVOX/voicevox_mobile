@@ -21,11 +21,15 @@ import "./styles/_index.scss";
 window.dataLayer = [];
 
 if (Capacitor.isNativePlatform()) {
+  console.log("Running in Capacitor");
   mobile.loadMock();
   mobile.loadPlugin();
   mobile.loadCoreBasedApi();
 } else if (!window.electron) {
+  console.log("Running in browser");
   loadElectronMock();
+} else {
+  console.log("Running in Electron");
 }
 
 createApp(App)

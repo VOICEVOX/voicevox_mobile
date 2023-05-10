@@ -16,7 +16,11 @@ const OpenAPIEngineConnectorFactoryImpl = (): IEngineConnectorFactory => {
         return cached;
       }
       let api;
-      if (import.meta.env.VITE_TARGET === "mobile") {
+      if (
+        import.meta.env.VITE_TARGET === "mobile" &&
+        // httpで始まる場合は外部APIとして扱う
+        !host.startsWith("http")
+      ) {
         if (!coreBasedApi) throw new Error("assert: coreBasedApi != null");
         api = coreBasedApi;
       } else {

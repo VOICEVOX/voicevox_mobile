@@ -4,12 +4,14 @@ import {
   createWebHistory,
   RouteRecordRaw,
 } from "vue-router";
-import EditorHome from "../views/EditorHome.vue";
+import EditorHome from "@/views/EditorHome.vue";
+import MobileEditorHome from "@/views/MobileEditorHome.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
-    component: EditorHome,
+    component:
+      import.meta.env.VITE_TARGET === "mobile" ? MobileEditorHome : EditorHome,
     props: (route) => ({ projectFilePath: route.query["projectFilePath"] }),
   },
 ];
