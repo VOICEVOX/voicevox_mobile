@@ -21,14 +21,17 @@ import "./styles/_index.scss";
 window.dataLayer = [];
 
 if (Capacitor.isNativePlatform()) {
+  // eslint-disable-next-line no-console
   console.log("Running in Capacitor");
   mobile.loadMock();
   mobile.loadPlugin();
   mobile.loadCoreBasedApi();
 } else if (!window.electron) {
+  // eslint-disable-next-line no-console
   console.log("Running in browser");
   loadElectronMock();
 } else {
+  // eslint-disable-next-line no-console
   console.log("Running in Electron");
 }
 
