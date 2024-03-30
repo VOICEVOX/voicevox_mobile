@@ -17,6 +17,7 @@
 <script setup lang="ts">
 import { watch, onMounted, ref, computed, toRaw } from "vue";
 import { useGtm } from "@gtm-support/vue-gtm";
+import { useQuasar, Notify } from "quasar";
 import TalkEditor from "@/components/Talk/TalkEditor.vue";
 import SingEditor from "@/components/Sing/SingEditor.vue";
 import { EngineId } from "@/type/preload";
@@ -26,6 +27,11 @@ import { useHotkeyManager } from "@/plugins/hotkeyPlugin";
 import AllDialog from "@/components/Dialog/AllDialog.vue";
 
 const store = useStore();
+
+const $q = useQuasar();
+Notify.setDefaults({
+  position: $q.platform.is.desktop ? "bottom" : "top",
+});
 
 const openedEditor = computed(() => store.state.openedEditor);
 

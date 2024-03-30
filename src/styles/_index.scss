@@ -8,6 +8,9 @@ body:not(#dummy) {
   border-left: solid #{vars.$window-border-width} #{colors.$splitter};
   border-right: solid #{vars.$window-border-width} #{colors.$splitter};
   border-bottom: solid #{vars.$window-border-width} #{colors.$splitter};
+  &:not(.desktop) {
+    border-top: solid #{vars.$window-border-width} #{colors.$splitter};
+  }
   color: colors.$display;
   background: colors.$background;
 }

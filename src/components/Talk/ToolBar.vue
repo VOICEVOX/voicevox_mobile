@@ -1,5 +1,24 @@
 <template>
-  <QHeader class="q-py-sm">
+  <QFooter v-if="isMobile" class="bg-primary text-white">
+    <QToolbar>
+      <MobileMenuButton />
+      <template v-for="button in buttons" :key="button.text">
+        <QSpace v-if="button.text === null" />
+        <QBtn
+          v-else
+          flat
+          round
+          dense
+          :disable="button.disable.value"
+          :icon="buttonIcons[button.tag]"
+          @click="button.click"
+        >
+          <QTooltip>{{ button.text }}</QTooltip>
+        </QBtn>
+      </template>
+    </QToolbar>
+  </QFooter>
+  <QHeader v-else class="q-py-sm">
     <QToolbar>
       <template v-for="button in buttons" :key="button.text">
         <QSpace v-if="button.text === null" />
@@ -20,6 +39,8 @@
 
 <script setup lang="ts">
 import { computed, ComputedRef } from "vue";
+import { QFooter, useQuasar } from "quasar";
+import MobileMenuButton from "./MobileMenuButton.vue";
 import {
   generateAndConnectAndSaveAudioWithDialog,
   multiGenerateAndSaveAudioWithDialog,
@@ -31,14 +52,19 @@ import { getToolbarButtonName } from "@/store/utility";
 import { useHotkeyManager } from "@/plugins/hotkeyPlugin";
 import { handlePossiblyNotMorphableError } from "@/store/audioGenerate";
 
+const $q = useQuasar();
+const isMobile = computed(() => !$q.platform.is.desktop);
+
 type ButtonContent = {
   text: string;
   click(): void;
   disable: ComputedRef<boolean>;
+  tag: ToolbarButtonTagType;
 };
 
 type SpacerContent = {
   text: null;
+  tag: null;
 };
 
 const store = useStore();
@@ -150,7 +176,7 @@ const importTextFile = () => {
 
 const usableButtons: Record<
   ToolbarButtonTagType,
-  Omit<ButtonContent, "text"> | null
+  Omit<ButtonContent, "text" | "tag"> | null
 > = {
   PLAY_CONTINUOUSLY: {
     click: playContinuously,
@@ -198,12 +224,27 @@ const buttons = computed(() =>
       return {
         ...buttonContent,
         text: getToolbarButtonName(tag),
+        tag,
       };
     } else {
       return {
         text: null,
+        tag: null,
       };
     }
   })
 );
+
+const buttonIcons: Record<ToolbarButtonTagType, string> = {
+  PLAY_CONTINUOUSLY: "playlist_play",
+  STOP: "stop",
+  EXPORT_AUDIO_SELECTED: "svguse:toolbarIcons.svg#exportSelected",
+  EXPORT_AUDIO_ALL: "svguse:toolbarIcons.svg#exportAll",
+  EXPORT_AUDIO_CONNECT_ALL: "svguse:toolbarIcons.svg#exportConnectAll",
+  UNDO: "undo",
+  REDO: "redo",
+  IMPORT_TEXT: "svguse:toolbarIcons.svg#importText",
+  SAVE_PROJECT: "save",
+  EMPTY: "",
+};
 </script>

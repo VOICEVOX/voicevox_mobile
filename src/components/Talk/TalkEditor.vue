@@ -3,7 +3,6 @@
 
   <QLayout reveal elevated container class="layout-container">
     <ToolBar v-if="$q.platform.is.desktop" />
-    <MobileHeaderBar v-else />
 
     <QPageContainer>
       <QPage class="main-row-panes">
@@ -124,6 +123,7 @@
         />
       </QPage>
     </QPageContainer>
+    <ToolBar v-if="!$q.platform.is.desktop" />
   </QLayout>
 </template>
 
@@ -149,7 +149,6 @@ import {
   SplitterPositionType,
   Voice,
 } from "@/type/preload";
-import MobileHeaderBar from "@/components/MobileHeaderBar.vue";
 import { useHotkeyManager } from "@/plugins/hotkeyPlugin";
 import onetimeWatch from "@/helpers/onetimeWatch";
 

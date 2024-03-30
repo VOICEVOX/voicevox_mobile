@@ -276,7 +276,10 @@ export const api: Sandbox = {
       );
   },
   vuexReady() {
-    SplashScreen.hide();
+    // 1フレーム遅らせることで、真っ白の画面が表示されるのを防ぐ。
+    requestAnimationFrame(() => {
+      SplashScreen.hide();
+    });
   },
   async getSetting(key) {
     const configManager = await getConfigManager();
