@@ -16,6 +16,7 @@ Node.js の管理ツール ([nvs](https://github.com/jasongin/nvs)など)を利�
 
 ```bash
 npm ci
+npm run mobile:install
 ```
 
 また、Android・iOS 開発用のツールも必要です。[Capacitor: 環境設定](https://capacitorjs.jp/docs/getting-started/environment-setup)を参照してください。
@@ -26,13 +27,13 @@ npm ci
 PC のプライベート IP アドレスは自動で取得されますが、手動で設定する場合は`.env` 内で `CAPACITOR_ADDRESS` を指定してください。
 
 ```bash
-npm run cap:serve
+npm run mobile:serve
 ```
 
 または、以下のコマンドで Web 側の変更をビルドし、Capacitor のライブリロードなしで反映します。
 
 ```bash
-npm run cap:sync
+npm run mobile:sync
 ```
 
 ### Android 版
@@ -40,7 +41,7 @@ npm run cap:sync
 以下のコマンドで Android Studio が起動します。起動後、Android Studio で実行ボタンを押してください。
 
 ```bash
-npm run cap:open:android
+npm run mobile:open:android
 ```
 
 [Capacitor Android ドキュメンテーション](https://capacitorjs.jp/docs/android) も参照してください。
@@ -53,14 +54,27 @@ TODO
 
 ### Android 版
 
+`apksigner` に PATH が通っている必要があります。
+`android/build-options.json` に keystore の情報を記述してください。
+
+```jsonc
+{
+  // 相対パスはプロジェクトルートから解決されます。
+  "keystorePath": "./android/debug.keystore",
+  "keystorePassword": "android",
+  "keystoreAlias": "androiddebugkey",
+  "keystoreAliasPassword": "android"
+}
+```
+
+セットアップが完了したら以下のコマンドでビルドできます。
+
 ```bash
 ANDROID_HOME=/path/to/android-sdk
 
-npm run cap:build:android -- \
-     --keystorepath /path/to/keystore.jks \
-     --keystorepass Password_here \
-     --keystorealias TestKey \
-     --keystorealiaspass Password_here
+npm run mobile:build:android -- \
+ --androidreleasetype APK
+ # --androidreleasetype AAB
 ```
 
 ### iOS/iPadOS 版

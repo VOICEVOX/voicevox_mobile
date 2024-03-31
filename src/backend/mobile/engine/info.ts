@@ -9,8 +9,7 @@ const infoProvider: ApiProvider = ({ corePlugin }) => {
 
   return {
     async versionVersionGet() {
-      // 何故か""で囲まれているのを再現。直ったら消す。
-      return JSON.stringify(corePlugin.getVersion());
+      return await corePlugin.getVersion().then((res) => res.value);
     },
     async engineManifestEngineManifestGet() {
       if (!engineManifest) {

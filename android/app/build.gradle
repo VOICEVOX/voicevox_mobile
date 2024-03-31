@@ -5,8 +5,9 @@ android {
     ndkVersion '25.2.9519653'
     namespace 'jp.hiroshiba.voicevox'
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
+        compileSdk rootProject.ext.compileSdkVersion
+
         applicationId "jp.hiroshiba.voicevox"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
@@ -36,11 +37,11 @@ android {
     }
 }
 
-repositories {
-    flatDir {
-        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
-    }
-}
+// repositories {
+//     flatDir {
+//         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+//     }
+// }
 def urlZipFile = { name, path, url ->
     File zipFile = new File("$buildDir/download/${name}.zip")
     zipFile.parentFile.mkdirs()

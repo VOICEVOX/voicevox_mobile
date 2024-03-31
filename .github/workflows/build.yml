@@ -124,6 +124,16 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
+      # https://github.com/easimon/maximize-build-space/blob/fc881a613ad2a34aca9c9624518214ebc21dfc0c/action.yml#L122-L136
+      - name: Remove unnecessary tools
+        if: startsWith(matrix.os, 'ubuntu-')
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+
       - uses: actions/checkout@v3
 
       # NOTE: The default sed of macOS is BSD sed.
@@ -488,4 +498,148 @@ jobs:
           files: |-
             dist_electron/nsis-web/out/*.7z.*
             dist_electron/nsis-web/*.exe
+          target_commitish: ${{ github.sha }}
+
+  build-and-upload-android:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Remove unnecessary tools
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+      - uses: actions/checkout@v3
+
+      - name: Replace package version
+        run: |
+          sed -i 's/"version": "999.999.999"/"version": "${{ env.VOICEVOX_EDITOR_VERSION }}"/' package.json
+          sed -i 's/versionCode 1/versionCode ${{ github.run_number }}/' android/app/build.gradle
+          sed -E -i 's/versionName ".+"/versionName "${{ env.VOICEVOX_EDITOR_VERSION }}"/' android/app/build.gradle
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: ".node-version"
+          cache: "npm"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: "17"
+          cache: "gradle"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Add build-tools to PATH
+        run: |
+          versions=($ANDROID_SDK_ROOT/build-tools/*)
+          build_tools_path=${versions[0]}
+          for version in "${versions[@]}"; do
+            if [ echo "$version" | grep -q 'rc' ]; then
+              continue
+            fi
+            build_tools_path=$version
+          done
+
+          echo "Build tools path: $build_tools_path"
+
+          echo "$build_tools_path" >> $GITHUB_PATH
+
+      - name: Cache gradle
+        uses: actions/cache@v3
+        with:
+          path: ./android/.gradle/configuration-cache
+          key: ${{ env.cache-version }}-gradle-configuration-cache
+          restore-keys: |
+            ${{ env.cache-version }}-gradle-configuration-cache
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm run mobile:install
+
+      - name: Checkout Product Version Resource
+        uses: actions/checkout@v3
+        with:
+          repository: VOICEVOX/voicevox_resource
+          ref: ${{ env.VOICEVOX_RESOURCE_VERSION }}
+          path: resource
+
+      - name: Create and replace software resources
+        run: |
+          rm build/README.txt
+          rm public/policy.md
+          {
+            cat resource/editor/README.md
+            echo
+            cat resource/editor/ACKNOWLEDGMENTS.md
+          } \
+          > build/README.txt
+          cp build/README.txt public/policy.md
+
+          cp resource/editor/PRIVACYPOLICY.md public/privacyPolicy.md
+
+      - name: Replace .env.production infomations
+        run: |
+          # GTM ID
+          gtm_id=$(jq -er '.gtm_container_id' resource/editor/metas.json)
+          sed -i 's/VITE_GTM_CONTAINER_ID=.*/VITE_GTM_CONTAINER_ID='"$gtm_id"'/' .env.production
+
+          # Engine host
+          sed -i 's|http://127.0.0.1:50021|local|g' .env.production
+
+      - name: Generate public/licenses.json
+        run: npm run license:generate -- -o public/licenses.json
+
+      - name: Setup Credentials (Debug)
+        if: github.event.inputs.code_signing == 'false'
+        run: |
+          cp android/build-options.debug.json android/build-options.json
+
+      - name: Setup Credentials (Release)
+        if: github.event.inputs.code_signing == 'true'
+        run: |
+          # メモ：
+          # ANDROID_BUILD_OPTIONSはbuild-options.jsonを、
+          # ANDROID_KEYSTOREはkeystore.jksをbase64エンコードしたものを想定
+          cat <<EOF > android/build-options.json
+          ${{ secrets.ANDROID_BUILD_OPTIONS }}
+          EOF
+          cat <<EOF | base64 -d > android/keystore.jks
+          ${{ secrets.ANDROID_KEYSTORE }}
+          EOF
+
+      - name: Build Android
+        run: |
+          chmod +x ./android/gradlew
+          npm run mobile:build:android -- --androidreleasetype APK --signing-type apksigner
+          npm run mobile:build:android -- --androidreleasetype AAB --signing-type jarsigner
+
+      - name: Rename
+        run: |
+          mkdir /tmp/build_artifacts
+          cp android/app/build/outputs/bundle/release/app-release-signed.aab /tmp/build_artifacts/VOICEVOX-${{ env.VOICEVOX_EDITOR_VERSION }}.aab
+          cp android/app/build/outputs/apk/release/app-release-signed.apk /tmp/build_artifacts/VOICEVOX-${{ env.VOICEVOX_EDITOR_VERSION }}.apk
+
+      - name: Upload Android binary to Artifacts
+        if: github.event.inputs.upload_artifact == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: |-
+            /tmp/build_artifacts/VOICEVOX-${{ env.VOICEVOX_EDITOR_VERSION }}.apk
+            /tmp/build_artifacts/VOICEVOX-${{ env.VOICEVOX_EDITOR_VERSION }}.aab
+
+      - name: Upload Android binary to Release Assets
+        if: (github.event.release.tag_name || github.event.inputs.version) != ''
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: ${{ github.event.inputs.prerelease }}
+          tag_name: ${{ env.VOICEVOX_EDITOR_VERSION }}
+          files: |-
+            /tmp/build_artifacts/VOICEVOX-${{ env.VOICEVOX_EDITOR_VERSION }}.apk
+            /tmp/build_artifacts/VOICEVOX-${{ env.VOICEVOX_EDITOR_VERSION }}.aab
           target_commitish: ${{ github.sha }}
